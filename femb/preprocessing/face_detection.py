@@ -1,7 +1,6 @@
 # %%
 from facenet_pytorch import MTCNN, InceptionResnetV1
 from PIL import Image
-import random
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +8,7 @@ import torch
 import torchvision.transforms as transforms
 
 
-def preprocess_image(img, size=224):
+def preprocess_image(img, size=224, visualize=True):
     # MTCNN 모델 생성
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     mtcnn = MTCNN(keep_all=True, device=device)
@@ -20,10 +19,6 @@ def preprocess_image(img, size=224):
     pil_img = Image.fromarray(img)
     # 1. 얼굴 검출
     boxes, _ = mtcnn.detect(pil_img)
-
-    tensor_imgs = []
-    byte_buffers = []
-
     
     # 1-1. 얼굴 검출 결과 표시
     if boxes is not None:
@@ -54,32 +49,25 @@ def preprocess_image(img, size=224):
         ])
         tensor_img = to_tensor(normalized_image)
         byte_buffer = tensor_img.numpy().tobytes()
+        if visualize:
+            plt.figure(figsize=(10,5))
+            # PIL 이미지로 변환하여 Jupyter 노트북에서 표시
+            display_image = Image.fromarray(boxed_img)
+            plt.subplot(1,2,1)
+            plt.title('detected_image')
+            plt.imshow(display_image)
+            plt.axis('off')
 
-        tensor_imgs.append(tensor_img)
-        byte_buffers.append(byte_buffer)
-
-        for tensor_img in tensor_imgs:
             visualized_img = tensor_img.permute(1,2,0)
-            shape_img = visualized_img.shape
-            plt.figure()
+            h, w, _ = visualized_img.shape
+            plt.subplot(1,2,2)
             plt.imshow(visualized_img)
-            plt.title(shape_img)
+            plt.title(f'output_size : {h}x{w}')
+            plt.axis('off')
             plt.show()
 
-        # PIL 이미지로 변환하여 Jupyter 노트북에서 표시
-        display_image = Image.fromarray(boxed_img)
-        plt.title('detected_image')
-        plt.imshow(display_image)
-        plt.show()
+
     else:
         print("얼굴이 검출되지 않았습니다.")
-    return tensor_imgs
-
-
-
-# # 테스트
-# for i in random.sample(range(0,13237),10):
-#     img_path = lfw_people[i]
-#     tensor_img, _ = preprocess_image(img_path, size=96)
-
+    return tensor_img
 # %%
