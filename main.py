@@ -11,7 +11,7 @@ def main():
     # specify the size of the embeddings
     embed_dim = 256
 
-    # preprocessing transform (assuming alignment and so on)
+    # preprocessing transform (assuming alignment and so on)햣 ㅔㅕ
     transform = torchvision.transforms.Compose([
         torchvision.transforms.ToPILImage(),
         torchvision.transforms.Resize((224, 224)),
@@ -71,7 +71,7 @@ def main():
         val_dataset=val_dataset,
         evaluation_steps=1000,
         max_training_steps=10000,
-        max_epochs=3,
+        max_epochs=2,
         tensorboard=True
         )
 

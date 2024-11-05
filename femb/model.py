@@ -62,13 +62,14 @@ class FaceEmbeddingModel:
                 logging.info(evaluator.__class__.__name__ + ': ' + str(stats))
                 writer.add_scalars(evaluator.__class__.__name__, stats, global_step=global_step)
                 writer.add_embedding(features, metadata=labels, label_img=thumbnails, global_step=global_step)
+                return stats
 
         else:
             def evaluate(global_step):
                 features, labels = self.encode_dataset(val_dataset, batch_size=batch_size, device=device, return_labels=True)
                 stats = evaluator(features, labels)
                 logging.info(evaluator.__class__.__name__ + ': ' + str(stats))
-
+                return stats
         if type(device) == str:
             device = torch.device(device)
 
@@ -77,21 +78,28 @@ class FaceEmbeddingModel:
 
         global_step = 0
         epoch = 0
+        # [ys] add best eer condition
+        best_eer = 1
 
+        # Training per epoch
         while(True):
             logging.info(f"Epoch {epoch}:")
             train_losses = np.empty(len(train_dataloader))
 
             self.header.train()
             self.backbone.train()
-            # checkpoint 추가
+            # [ys] add checkpoint
             if os.path.exists('checkpoint/checkpoint.pt'):
                 loaded_checkpoint = torch.load('checkpoint/checkpoint.pt')
-                start_epoch = loaded_checkpoint['epoch'] + 1
-                print(f'checkpoint_{start_epoch} load complete!')
+                checkpoint_epoch = loaded_checkpoint['epoch']
+                trained_epoch = loaded_checkpoint['trained_epoch']
+                print(f'checkpoint_{checkpoint_epoch} load complete!')
+                self.backbone.load_state_dict(loaded_checkpoint['backbone_state_dict'])
                 self.header.load_state_dict(loaded_checkpoint['header_state_dict'])
                 optimizer.load_state_dict(loaded_checkpoint['optimizer_state_dict'])
-
+                best_eer = loaded_checkpoint.get('stats', {}).get('eer', best_eer)
+            else:
+                trained_epoch = 0
 
             pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
             for step, batch in pbar:
@@ -122,7 +130,7 @@ class FaceEmbeddingModel:
                 pbar.set_description_str(status)
 
                 if evaluator is not None and evaluation_steps > 0 and step % evaluation_steps == 0:
-                    evaluate(global_step)
+                    stats = evaluate(global_step)
 
                 if tensorboard:
                     writer.add_scalar(self.loss.__class__.__name__, loss_value, global_step=global_step)
@@ -139,23 +147,35 @@ class FaceEmbeddingModel:
             if evaluator is not None and max_epochs > 0 and evaluation_steps == 0:
                 stats = evaluate(global_step)
 
-            # torch.save 추가
-            checkpoint = {
-                'backbone_state_dict': self.backbone.state_dict(),
-                'header_state_dict': self.header.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_losses' : train_losses,
-                'epoch': epoch
-            }
-            torch.save(checkpoint, f"{training_path}/epoch_{epoch}.pt")
-            # checkpoint 활용
-            checkpoint_path = 'checkpoint'
-            if not os.path.exists(checkpoint_path):
-                os.makedirs(checkpoint_path)
-            torch.save(checkpoint, f"{checkpoint_path}/checkpoint.pt")
-            print(f'checkpoing_{epoch} save complete!')
+
+            # [ys] add best eer condition
+            if stats['eer'] < best_eer:
+                print(f"epoch_eer : {stats['eer']}, best_eer : {best_eer}")
+                best_eer = stats['eer']
+                trained_epoch += 1
+                # [ys] make checkpoint with torch
+                checkpoint = {
+                    'epoch': trained_epoch,
+                    'backbone_state_dict': self.backbone.state_dict(),
+                    'header_state_dict': self.header.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'stats': stats,
+                    'trained_epoch': trained_epoch
+                }
+                # [ys] save checkpoint
+                checkpoint_path = 'checkpoint'
+                if not os.path.exists(checkpoint_path):
+                    os.makedirs(checkpoint_path)
+                torch.save(checkpoint, f"{checkpoint_path}/checkpoint.pt")
+                print(f'checkpoint_{trained_epoch} save complete!')
+            else:
+                trained_epoch += 1
+                loaded_checkpoint['trained_epoch'] = trained_epoch
+                torch.save(loaded_checkpoint, 'checkpoint/checkpoint.pt')
+                print(f'train_epoch : {trained_epoch}')
 
             epoch += 1
+            # [ys] quit traning with condition
             if max_epochs > 0 and epoch >= max_epochs:
                 return
 
