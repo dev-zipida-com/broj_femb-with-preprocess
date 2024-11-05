@@ -3,5 +3,5 @@ tensorboard/
 *.pyc
 *.log
 align.py
-checkoupoint/
+checkpoint/
 output/
