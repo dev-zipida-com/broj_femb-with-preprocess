@@ -8,21 +8,15 @@ import numpy as np
 import torch
 import torchvision.transforms as transforms
 
-# MTCNN 모델 생성
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-mtcnn = MTCNN(keep_all=True, device=device)
-# 얼굴 임베딩 모델
-model = InceptionResnetV1(pretrained='vggface2').eval().to(device)
 
-def preprocess_image(img_path, size=224):
+def preprocess_image(img, size=224):
     # MTCNN 모델 생성
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     mtcnn = MTCNN(keep_all=True, device=device)
     # 얼굴 임베딩 모델
     model = InceptionResnetV1(pretrained='vggface2').eval().to(device)
     # 이미지 변환
-    img = cv2.imread(img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(img)
     # 1. 얼굴 검출
     boxes, _ = mtcnn.detect(pil_img)
@@ -48,10 +42,10 @@ def preprocess_image(img_path, size=224):
             # 3. Normalization
             normalized_image = resized_img / 255.0
             # 4. Transforms to tensor -> bytebuffer
-            preprocess = transforms.Compose([
+            to_tensor = transforms.Compose([
                 transforms.ToTensor(),
             ])
-            tensor_img = preprocess(normalized_image)
+            tensor_img = to_tensor(normalized_image)
             byte_buffer = tensor_img.numpy().tobytes()
 
             tensor_imgs.append(tensor_img)
@@ -72,7 +66,7 @@ def preprocess_image(img_path, size=224):
         plt.show()
     else:
         print("얼굴이 검출되지 않았습니다.")
-    return tensor_imgs, byte_buffers
+    return tensor_imgs
 
 
 

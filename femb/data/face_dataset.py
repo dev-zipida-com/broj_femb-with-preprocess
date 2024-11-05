@@ -6,11 +6,12 @@ import numpy as np
 
 class FaceDataset(torch.utils.data.Dataset):
 
-    def __init__(self, name=None, root='datasets/', transform=None):
+    def __init__(self, name=None, root='datasets/', transform=None, preprocess=None):
         assert name
         self.name = name
         self.root = root
         self.transform = transform
+        self.preprocess = preprocess
 
         self.img_paths = None
         self.img_id_labels = None
@@ -31,6 +32,10 @@ class FaceDataset(torch.utils.data.Dataset):
 
         if self.transform is not None:
             img = self.transform(img)
+        
+        # add preprocessing
+        if self.preprocess is not None:
+            img = self.preprocess(img)
 
         return img, img_label
 

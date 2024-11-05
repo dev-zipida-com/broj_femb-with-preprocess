@@ -111,6 +111,7 @@ class FaceEmbeddingModel:
                 inputs = batch[0].to(device)
                 labels = batch[1].to(device).long().view(-1)
 
+                # add preprocess func
 
 
                 features = self.backbone(inputs)

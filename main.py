@@ -11,7 +11,7 @@ def main():
     # specify the size of the embeddings
     embed_dim = 256
 
-    # preprocessing transform (assuming alignment and so on)햣 ㅔㅕ
+    # preprocessing transform (assuming alignment and so on)
     transform = torchvision.transforms.Compose([
         torchvision.transforms.ToPILImage(),
         torchvision.transforms.Resize((224, 224)),
