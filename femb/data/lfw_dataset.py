@@ -43,9 +43,7 @@ class LFWDataset(FaceImageFolderDataset):
         # download lfw .tgz file if necessary
         if not os.path.isfile(tgz_path):
             http_get(url=download_url, path=tgz_path)
-        print("Root Path:", self.root)
-        print("Dataset Name:", self.name)
-        print("People Test Path:", people_test_path)
+
 
         # extract it if necessary
         if not os.path.isdir(os.path.join(self.root, self.name)):
