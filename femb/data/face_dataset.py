@@ -3,6 +3,7 @@ import torch
 from imageio import imread
 import torchvision
 import numpy as np
+from facenet_pytorch import MTCNN
 
 class FaceDataset(torch.utils.data.Dataset):
 
@@ -12,6 +13,9 @@ class FaceDataset(torch.utils.data.Dataset):
         self.root = root
         self.transform = transform
         self.preprocess = preprocess
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.mtcnn = MTCNN(keep_all=True, device=self.device)
+
 
         self.img_paths = None
         self.img_id_labels = None
@@ -33,9 +37,9 @@ class FaceDataset(torch.utils.data.Dataset):
         if self.transform is not None:
             img = self.transform(img)
         
-        # add preprocessing
+        # [ys] add preprocessing
         if self.preprocess is not None:
-            img = self.preprocess(img)
+            img = self.preprocess(img, mtcnn=self.mtcnn)
 
         return img, img_label
 

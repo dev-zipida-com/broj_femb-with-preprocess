@@ -6,6 +6,7 @@ from femb.headers import LinearHeader, SphereFaceHeader, CosFaceHeader, ArcFaceH
 from femb.evaluation import VerificationEvaluator
 from femb.data import LFWDataset, CelebADataset
 from femb import FaceEmbeddingModel
+from femb.preprocessing.face_detection import preprocess_image
 
 def main():
     # specify the size of the embeddings
@@ -23,7 +24,8 @@ def main():
         ])
 
     # loading the face dataset
-    train_dataset = LFWDataset(split='train', aligned=True, transform=transform)
+    # train_dataset = LFWDataset(split='train', aligned=True, transform=transform)
+    train_dataset = LFWDataset(split='train', aligned=True, preprocess=preprocess_image)
     val_dataset = LFWDataset(split='test', aligned=True, transform=transform)
 
     # shrink the datasets due to limited compute capabilities
@@ -74,7 +76,6 @@ def main():
         max_epochs=2,
         tensorboard=True
         )
-
 
 if __name__ == '__main__':
     main()
