@@ -8,8 +8,6 @@ import torch
 import torchvision.transforms as transforms
 
 
-
-
 def visualize_results(boxed_img, tensor_img):
     plt.figure(figsize=(10,5))
     # PIL 이미지로 변환하여 Jupyter 노트북에서 표시

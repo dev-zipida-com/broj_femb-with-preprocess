@@ -4,9 +4,9 @@ from tqdm import tqdm
 import torch
 import torchvision
 import numpy as np
-
 import random
 import cv2
+import time
 
 import logging
 
@@ -22,6 +22,7 @@ class FaceEmbeddingModel:
         # join parameter sets of backbone and header
         self.params = list(backbone.parameters())
         self.params.extend(list(header.parameters()))
+
 
         self.params = [{'params': backbone.parameters()}, {'params': header.parameters()}]
 
@@ -83,6 +84,7 @@ class FaceEmbeddingModel:
 
         # Training per epoch
         while(True):
+            start_time = time.time()
             logging.info(f"Epoch {epoch}:")
             train_losses = np.empty(len(train_dataloader))
 
@@ -103,7 +105,10 @@ class FaceEmbeddingModel:
 
             pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
             for step, batch in pbar:
-
+                # [ys] add break condition
+                if any(item is None for item in batch):
+                    print(f"Breaking batch due to None values: {batch}")
+                    continue
                 # skip batch if singleton
                 if len(batch[0]) <= 1:
                     continue
@@ -174,6 +179,9 @@ class FaceEmbeddingModel:
                 print(f'train_epoch : {trained_epoch}')
 
             epoch += 1
+            end_time = time.time()
+            epoch_duration = end_time - start_time
+            print(f"Epoch_{epoch} Duration: {epoch_duration:.2f} seconds")
             # [ys] quit traning with condition
             if max_epochs > 0 and epoch >= max_epochs:
                 return

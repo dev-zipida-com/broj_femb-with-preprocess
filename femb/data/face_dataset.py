@@ -43,6 +43,12 @@ class FaceDataset(torch.utils.data.Dataset):
 
         return img, img_label
 
+    # [ys] add get_idx_path method
+    def get_idx_path(self, idx):
+        img_path = self.img_paths[idx]
+        return img_path
+
+
 
     def get_n_identities(self):
         return len(np.unique(self.img_id_labels))
