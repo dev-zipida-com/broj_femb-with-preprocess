@@ -39,7 +39,9 @@ class FaceEmbeddingModel:
     def fit(self, train_dataset, batch_size, device, optimizer, max_epochs=0, max_training_steps=0, lr_global_step_scheduler=None, lr_epoch_scheduler=None, evaluator=None, val_dataset=None, evaluation_steps=0, tensorboard=False):
         assert max_epochs > 0 or max_training_steps > 0
 
-        training_id = self.name + '_' + str(random.randint(0, 9999999)).zfill(7)
+        # training_id = self.name + '_' + str(random.randint(0, 9999999)).zfill(7)
+        training_id = self.name + '_' + time.strftime("%y%m%d", time.localtime())
+
         training_path = os.path.join('output', training_id)
         if not os.path.exists(training_path):
             os.makedirs(training_path)
@@ -91,7 +93,7 @@ class FaceEmbeddingModel:
             self.header.train()
             self.backbone.train()
             # [ys] add checkpoint
-            if os.path.exists('checkpoint/checkpoint.pt'):
+            if os.path.exists(f'{training_path}_checkpoint/checkpoint.pt'):
                 loaded_checkpoint = torch.load('checkpoint/checkpoint.pt')
                 checkpoint_epoch = loaded_checkpoint['epoch']
                 trained_epoch = loaded_checkpoint['trained_epoch']
@@ -167,7 +169,7 @@ class FaceEmbeddingModel:
                     'trained_epoch': trained_epoch
                 }
                 # [ys] save checkpoint
-                checkpoint_path = 'checkpoint'
+                checkpoint_path = f'{training_path}_checkpoint'
                 if not os.path.exists(checkpoint_path):
                     os.makedirs(checkpoint_path)
                 torch.save(checkpoint, f"{checkpoint_path}/checkpoint.pt")
