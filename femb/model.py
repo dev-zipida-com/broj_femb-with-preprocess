@@ -108,7 +108,7 @@ class FaceEmbeddingModel:
                 # [ys] add break condition
                 if any(item is None for item in batch):
                     print(f"Breaking batch due to None values: {batch}")
-                    continue
+                    break
                 # skip batch if singleton
                 if len(batch[0]) <= 1:
                     continue
