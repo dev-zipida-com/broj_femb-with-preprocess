@@ -5,3 +5,4 @@ tensorboard/
 align.py
 checkpoint/
 output/
+preprocess_dataset.py

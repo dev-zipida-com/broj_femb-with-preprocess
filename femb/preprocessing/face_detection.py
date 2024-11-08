@@ -28,9 +28,9 @@ def visualize_results(boxed_img, tensor_img):
 
 def preprocess_image(img, mtcnn,size=224, visualize=False):
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    pil_img = Image.fromarray(img)
+    # pil_img = Image.fromarray(img)
     # 1. 얼굴 검출
-    boxes, _ = mtcnn.detect(pil_img)
+    boxes, _ = mtcnn.detect(img)
     
     # 1-1. 얼굴 검출 결과 표시
     if boxes is not None:
